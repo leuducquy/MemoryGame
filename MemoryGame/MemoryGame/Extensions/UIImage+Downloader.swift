@@ -14,18 +14,15 @@ import UIKit.UIImage
 extension UIImage {
     static func downloadImage(url: NSURL, completion: ((UIImage?) -> Void)?) {
         
-        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_BACKGROUND, 0)) {
-            var image: UIImage? = nil
-            
-            defer {
-                dispatch_async(dispatch_get_main_queue()) {
-                    completion?(image)
-                }
-            }
-            
-            if let data = NSData(contentsOfURL: url) {
-                image = UIImage(data: data)
+        DispatchQueue.global(qos: .userInitiated).async {
+            let data = try! Data(contentsOf: url as URL)
+            // Bounce back to the main thread to update the UI
+            DispatchQueue.main.async {
+               let  image = UIImage(data: data)
+                 completion?(image)
             }
         }
+        
+        }
     }
-}
+

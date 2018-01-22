@@ -22,12 +22,12 @@ class CustomizeCardsTableViewController: UITableViewController, UIImagePickerCon
         super.viewDidLoad()
     }
 
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         navigationController?.setNavigationBarHidden(false, animated: true)
     }
     
-    override func viewWillDisappear(animated: Bool) {
+    override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
         navigationController?.setNavigationBarHidden(true, animated: true)
     }
@@ -35,128 +35,129 @@ class CustomizeCardsTableViewController: UITableViewController, UIImagePickerCon
     // MARK: - Methods
 
     private func didPressChangeCard(index: Int) {
-        let alertController = UIAlertController(title: NSLocalizedString("Select card image source:", comment: "-"), message: nil, preferredStyle: .ActionSheet)
+        let alertController = UIAlertController(title: NSLocalizedString("Select card image source:", comment: "-"), message: nil, preferredStyle: .actionSheet)
         
-        if UIImagePickerController.isSourceTypeAvailable(.PhotoLibrary) {
-            let PhotoLibraryAction = UIAlertAction(title: NSLocalizedString("Photo Library", comment: "pl"), style: .Default) { [weak self] (action) in
+        if UIImagePickerController.isSourceTypeAvailable(.photoLibrary) {
+            let PhotoLibraryAction = UIAlertAction(title: NSLocalizedString("Photo Library", comment: "pl"), style: .default) { [weak self] (action) in
                 let imagePicker = UIImagePickerController()
                 imagePicker.delegate = self
-                imagePicker.sourceType = .PhotoLibrary
-                self?.presentViewController(imagePicker, animated: true, completion: nil)
+                imagePicker.sourceType = .photoLibrary
+                self?.present(imagePicker, animated: true, completion: nil)
             }
             alertController.addAction(PhotoLibraryAction)
         }
         
-        if UIImagePickerController.isSourceTypeAvailable(.Camera) {
-            let CameraAction = UIAlertAction(title: NSLocalizedString("Take Photo", comment: "tp"), style: .Default) { [weak self] (action) in
+        if UIImagePickerController.isSourceTypeAvailable(.camera) {
+            let CameraAction = UIAlertAction(title: NSLocalizedString("Take Photo", comment: "tp"), style: .default) { [weak self] (action) in
                 let imagePicker = UIImagePickerController()
                 imagePicker.delegate = self
-                imagePicker.sourceType = .Camera
-                self?.presentViewController(imagePicker, animated: true, completion: nil)
+                imagePicker.sourceType = .camera
+               self?.present(imagePicker, animated: true, completion: nil)
             }
             alertController.addAction(CameraAction)
         }
         
-        let URLAction = UIAlertAction(title: NSLocalizedString("Insert URL", comment: "url"), style: .Default) { [weak self] (action) in
+        let URLAction = UIAlertAction(title: NSLocalizedString("Insert URL", comment: "url"), style: .default) { [weak self] (action) in
             self?.promptImageURL()
         }
         alertController.addAction(URLAction)
         
-        let cancelAction = UIAlertAction(title: "Cancel", style: .Cancel) { (action) in }
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { (action) in }
         alertController.addAction(cancelAction)
         
-        self.presentViewController(alertController, animated: true) { }
+        self.present(alertController, animated: true) { }
     }
     
     private func promptImageURL() {
-        let alertController = UIAlertController(title: NSLocalizedString("Enter Image URL:", comment: "title"), message: nil, preferredStyle: .Alert)
+        let alertController = UIAlertController(title: NSLocalizedString("Enter Image URL:", comment: "title"), message: nil, preferredStyle: .alert)
         
-        let enterUrlAction = UIAlertAction(title: NSLocalizedString("Load", comment: "load"), style: .Default) { [weak self] (_) in
+        let enterUrlAction = UIAlertAction(title: NSLocalizedString("Load", comment: "load"), style: .default) { [weak self] (_) in
             let textField = alertController.textFields![0] as UITextField
             guard let url = NSURL(string: textField.text!) else { return }
-            self?.loadImage(url)
+            self?.loadImage(url: url)
         }
-        enterUrlAction.enabled = false
+        enterUrlAction.isEnabled = false
         alertController.addAction(enterUrlAction)
         
-        alertController.addTextFieldWithConfigurationHandler { (textField) in
+        alertController.addTextField { (textField) in
             textField.placeholder = NSLocalizedString("Image URL", comment: "image url")
             textField.keyboardType = .URL
             
-            NSNotificationCenter.defaultCenter().addObserverForName(UITextFieldTextDidChangeNotification,
+            NotificationCenter.default.addObserver(forName: NSNotification.Name.UITextFieldTextDidChange,
                 object: textField,
-                queue: NSOperationQueue.mainQueue()) { (notification) in
-                    enterUrlAction.enabled = textField.text != ""
+                queue: OperationQueue.main) { (notification) in
+                    enterUrlAction.isEnabled = textField.text != ""
             }
         }
         
-        let cancelAction = UIAlertAction(title: NSLocalizedString("Dismiss", comment: "dismiss"), style: .Cancel) { (action) in }
+        let cancelAction = UIAlertAction(title: NSLocalizedString("Dismiss", comment: "dismiss"), style: .cancel) { (action) in }
         alertController.addAction(cancelAction)
         
-        self.presentViewController(alertController, animated: true) { }
+        self.present(alertController, animated: true, completion: nil)
     }
     
     private func loadImage(url: NSURL) {
-        UIImage.downloadImage(url) { [weak self] (image: UIImage?) -> Void in
+        UIImage.downloadImage(url: url) { [weak self] (image: UIImage?) -> Void in
             guard let image = image else { return }
-            self?.changeCard((self?.selectedIndexPath!.row)!, image: image)
+            self?.changeCard(index: (self?.selectedIndexPath!.row)!, image: image)
         }
     }
     
     private func changeCard(index: Int, image: UIImage) {
         cards[index] = image
         MemoryGame.defaultCardImages[index] = image
-        tableView.reloadRowsAtIndexPaths([NSIndexPath(forRow: index, inSection: 0)], withRowAnimation: .Automatic)
+      
+        tableView.reloadRows(at:  [IndexPath(item: index, section: 0)], with: .automatic)
     }
     
     // MARK: - UITableViewDataSource
-
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
-        return 1
+    override func numberOfSections(in tableView: UITableView) -> Int {
+         return 1
     }
-
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+ 
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return cards.count
     }
 
-    
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("cardCell", forIndexPath: indexPath)
+
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "cardCell", for: indexPath)
         
         let textLabel: UILabel = cell.viewWithTag(1) as! UILabel
         let imageView: UIImageView = cell.viewWithTag(2) as! UIImageView
-
+        
         // Configure the cell...
         let card = cards[indexPath.row]
-
+        
         textLabel.text = String(format: "Card %d", indexPath.row+1)
         imageView.image = card
         
         return cell
     }
+   
     
     // MARK: - UITableViewDelegate
-
-    override func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        tableView.deselectRowAtIndexPath(indexPath, animated: true)
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        tableView.deselectRow(at: indexPath, animated: true)
         
-        selectedIndexPath = indexPath
-        didPressChangeCard(indexPath.row)
+        selectedIndexPath = indexPath as NSIndexPath
+        didPressChangeCard(index: indexPath.row)
     }
+    
     
     // MARK: - UIImagePickerControllerDelegate
 
     func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
-        picker.dismissViewControllerAnimated(true, completion: nil)
+        picker.dismiss(animated: true, completion: nil)
 
         guard let selectedIndexPath = selectedIndexPath else { return }
         if let image = info[UIImagePickerControllerOriginalImage] as? UIImage {
-            changeCard(selectedIndexPath.row, image: image)
+            changeCard(index: selectedIndexPath.row, image: image)
         }
     }
     
     func imagePickerControllerDidCancel(picker: UIImagePickerController) {
-        picker.dismissViewControllerAnimated(true, completion: nil)
+        picker.dismiss(animated: true, completion: nil)
     }
 
 

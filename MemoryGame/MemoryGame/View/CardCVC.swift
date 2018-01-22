@@ -27,33 +27,33 @@ class CardCVC: UICollectionViewCell {
     // MARK: - Methods
 
     func showCard(show: Bool, animted: Bool) {
-        frontImageView.hidden = false
-        backImageView.hidden = false
+        frontImageView.isHidden = false
+        backImageView.isHidden = false
         shown = show
 
         if animted {
             if show {
-                UIView.transitionFromView(backImageView,
-                    toView: frontImageView,
+                UIView.transition(from: backImageView,
+                                  to: frontImageView,
                     duration: 0.5,
-                    options: [.TransitionFlipFromRight, .ShowHideTransitionViews],
+                    options: [.transitionFlipFromRight, .showHideTransitionViews],
                     completion: { (finished: Bool) -> () in
                     })
             } else {
-                UIView.transitionFromView(frontImageView,
-                    toView: backImageView,
+                UIView.transition(from: frontImageView,
+                                  to: backImageView,
                     duration: 0.5,
-                    options: [.TransitionFlipFromRight, .ShowHideTransitionViews],
+                    options: [.transitionFlipFromRight, .showHideTransitionViews],
                     completion:  { (finished: Bool) -> () in
                     })
             }
         } else {
             if show {
-                bringSubviewToFront(frontImageView)
-                backImageView.hidden = true
+                bringSubview(toFront: frontImageView)
+                backImageView.isHidden = true
             } else {
-                bringSubviewToFront(backImageView)
-                frontImageView.hidden = true
+                bringSubview(toFront: backImageView)
+                frontImageView.isHidden = true
             }
         }
     }

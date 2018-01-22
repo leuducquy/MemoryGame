@@ -15,7 +15,7 @@ protocol MemoryGameDelegate {
     func memoryGameDidStart(game: MemoryGame)
     func memoryGame(game: MemoryGame, showCards cards: [Card])
     func memoryGame(game: MemoryGame, hideCards cards: [Card])
-    func memoryGameDidEnd(game: MemoryGame, elapsedTime: NSTimeInterval)
+    func memoryGameDidEnd(game: MemoryGame, elapsedTime: TimeInterval)
 }
 
 // MARK: - MemoryGame
@@ -46,22 +46,22 @@ class MemoryGame {
         }
     }
     
-    var elapsedTime : NSTimeInterval {
+    var elapsedTime : TimeInterval {
         get {
             guard startTime != nil else {
                 return -1
             }
-            return NSDate().timeIntervalSinceDate(startTime!)
+            return NSDate().timeIntervalSince(startTime! as Date)
         }
     }
     
     // MARK: - Methods
 
     func newGame(cardsData:[UIImage]) {
-        cards = randomCards(cardsData)
+        cards = randomCards(cardsData: cardsData)
         startTime = NSDate.init()
         isPlaying = true
-        delegate?.memoryGameDidStart(self)
+        delegate?.memoryGameDidStart(game: self)
     }
 
     func stopGame() {
@@ -74,19 +74,18 @@ class MemoryGame {
     func didSelectCard(card: Card?) {
         guard let card = card else { return }
         
-        delegate?.memoryGame(self, showCards: [card])
+        delegate?.memoryGame(game: self, showCards: [card])
 
         if unpairedCardShown() {
             let unpaired = unpairedCard()!
-            if card.equals(unpaired) {
+            if card.equals(card: unpaired) {
                 cardsShown.append(card)
             } else {
                 let unpairedCard = cardsShown.removeLast()
-                
-                let delayTime = dispatch_time(DISPATCH_TIME_NOW, Int64(1 * Double(NSEC_PER_SEC)))
-                dispatch_after(delayTime, dispatch_get_main_queue()) {
-                    self.delegate?.memoryGame(self, hideCards:[card, unpairedCard])
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                    self.delegate?.memoryGame(game: self, hideCards: [card, unpairedCard])
                 }
+               
             }
         } else {
             cardsShown.append(card)
@@ -116,7 +115,7 @@ class MemoryGame {
     
     private func finishGame() {
         isPlaying = false
-        delegate?.memoryGameDidEnd(self, elapsedTime: elapsedTime)
+        delegate?.memoryGameDidEnd(game: self, elapsedTime: elapsedTime)
     }
 
     private func unpairedCardShown() -> Bool {
@@ -132,7 +131,7 @@ class MemoryGame {
         var cards = [Card]()
         for i in 0...cardsData.count-1 {
             let card = Card.init(image: cardsData[i])
-            cards.appendContentsOf([card, Card.init(card: card)])
+            cards.append(contentsOf: [card, Card.init(card: card)])
         }
         cards.shuffle()
         return cards
