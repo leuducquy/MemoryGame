@@ -146,17 +146,19 @@ class CustomizeCardsTableViewController: UITableViewController, UIImagePickerCon
     
     
     // MARK: - UIImagePickerControllerDelegate
-
-    func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : Any]) {
         picker.dismiss(animated: true, completion: nil)
-
+        
         guard let selectedIndexPath = selectedIndexPath else { return }
         if let image = info[UIImagePickerControllerOriginalImage] as? UIImage {
             changeCard(index: selectedIndexPath.row, image: image)
         }
     }
+    private func imagePickerController(picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [String : AnyObject]) {
+       
+    }
     
-    func imagePickerControllerDidCancel(picker: UIImagePickerController) {
+    @nonobjc func imagePickerControllerDidCancel(picker: UIImagePickerController) {
         picker.dismiss(animated: true, completion: nil)
     }
 
